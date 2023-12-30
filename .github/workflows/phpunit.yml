@@ -21,7 +21,7 @@ jobs:
             composer install
       - name: Run PHPUnit tests
         run: |
-            ./vendor/bin/phpunit --filter testGetPerson |
-            ./vendor/bin/phpunit --filter testGetOrganizationOfPerson |
-            ./vendor/bin/phpunit --filter testSetPerson |
-            ./vendor/bin/phpunit --filter testSetOrganizationOfPerson |
+            ./vendor/bin/phpunit --filter testGetPerson
+            ./vendor/bin/phpunit --filter testGetOrganizationOfPerson
+            ./vendor/bin/phpunit --filter testSetPerson
+            ./vendor/bin/phpunit --filter testSetOrganizationOfPerson
