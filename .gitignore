@@ -1,0 +1,14 @@
+phpunit.xml
+/vendor
+composer.lock
+composer.phar
+/.php-cs-fixer.php
+/*.cache
+var
+
+phpbench.phar
+phpbench.phar.*
+/.phpbench_storage
+php-cs-fixer.phar
+
+.idea

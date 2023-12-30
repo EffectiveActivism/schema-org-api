@@ -1,0 +1,36 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: true
+
+  EffectiveActivism\SchemaOrgApi\EventListener\ExecutorEventListener:
+    tags:
+      - { name: kernel.event_listener, event: graphql.pre_executor, method: onPreExecutor }
+
+  EffectiveActivism\SchemaOrgApi\Helper\MutationHelper:
+    class: EffectiveActivism\SchemaOrgApi\Helper\MutationHelper
+
+  EffectiveActivism\SchemaOrgApi\Helper\QueryHelper:
+    class: EffectiveActivism\SchemaOrgApi\Helper\QueryHelper
+
+  EffectiveActivism\SchemaOrgApi\Helper\SparQlHelper:
+    class: EffectiveActivism\SchemaOrgApi\Helper\SparQlHelper
+
+  EffectiveActivism\SchemaOrgApi\Registry\TypeRegistry:
+    class: EffectiveActivism\SchemaOrgApi\Registry\TypeRegistry
+
+  EffectiveActivism\SchemaOrgApi\Resolver\FieldResolver:
+    class: EffectiveActivism\SchemaOrgApi\Resolver\FieldResolver
+
+  Symfony\Contracts\HttpClient\HttpClientInterface:
+    class: Symfony\Component\HttpClient\MockHttpClient
+
+  Symfony\Contracts\Cache\TagAwareCacheInterface:
+    class: Symfony\Component\Cache\Adapter\TagAwareAdapter
+
+  Symfony\Component\Cache\Adapter\AdapterInterface:
+    class: Symfony\Component\Cache\Adapter\NullAdapter
+
+  Symfony\Contracts\Cache\CacheInterface:
+    class: Symfony\Component\Cache\Adapter\NullAdapter

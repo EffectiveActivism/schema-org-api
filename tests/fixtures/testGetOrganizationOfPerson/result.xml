@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sparql xmlns='http://www.w3.org/2005/sparql-results#'>
+    <head>
+        <variable name='0_Person'/>
+        <variable name='0_Person_memberOf_0_Organization'/>
+        <variable name='0_Person_memberOf_0_Organization_name_0_TextType_value'/>
+    </head>
+    <results>
+        <result>
+            <binding name='0_Person'>
+                <uri>urn:uuid:7bb0379a-5d0b-11ed-8a47-b30754e888b6</uri>
+            </binding>
+            <binding name='0_Person_memberOf_0_Organization'>
+                <uri>urn:uuid:d817e766-d2e1-11ed-b7a3-1f338948316a</uri>
+            </binding>
+            <binding name='0_Person_memberOf_0_Organization_name_0_TextType_value'>
+                <literal>Foo</literal>
+            </binding>
+        </result>
+    </results>
+</sparql>
