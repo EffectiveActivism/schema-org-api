@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sparql xmlns='http://www.w3.org/2005/sparql-results#'>
+    <head>
+        <variable name='property'/>
+        <variable name='comment'/>
+    </head>
+    <results>
+        <result>
+            <binding name='property'>
+                <uri>https://schema.org/knows</uri>
+            </binding>
+            <binding name='comment'>
+                <literal>The most generic bi-directional social/work relation.</literal>
+            </binding>
+        </result>
+        <result>
+            <binding name='property'>
+                <uri>https://schema.org/memberOf</uri>
+            </binding>
+            <binding name='comment'>
+                <literal>An Organization (or ProgramMembership) to which this Person or Organization belongs.</literal>
+            </binding>
+        </result>
+        <result>
+            <binding name='property'>
+                <uri>https://schema.org/name</uri>
+            </binding>
+            <binding name='comment'>
+                <literal>The name of the item.</literal>
+            </binding>
+        </result>
+    </results>
+</sparql>
