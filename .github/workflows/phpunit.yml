@@ -1,0 +1,27 @@
+name: Run PHPUnit tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-docker-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install composer
+        run: |
+          curl -sS https://getcomposer.org/installer | php
+          sudo mv composer.phar /usr/local/bin/composer
+          sudo chmod +x /usr/local/bin/composer
+      - name: Run composer install
+        run: |
+            composer install
+      - name: Run PHPUnit tests
+        run: |
+            ./vendor/bin/phpunit --filter testGetPerson
+            ./vendor/bin/phpunit --filter testGetOrganizationOfPerson
+            ./vendor/bin/phpunit --filter testSetPerson
+            ./vendor/bin/phpunit --filter testSetOrganizationOfPerson
