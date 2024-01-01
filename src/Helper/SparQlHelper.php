@@ -13,7 +13,13 @@ use EffectiveActivism\SparQlClient\Syntax\Pattern\Constraint\FilterNotExists;
 use EffectiveActivism\SparQlClient\Syntax\Pattern\Constraint\Operator\Binary\Equal;
 use EffectiveActivism\SparQlClient\Syntax\Pattern\Constraint\Operator\Unary\Str;
 use EffectiveActivism\SparQlClient\Syntax\Pattern\Optionally\Optionally;
+use EffectiveActivism\SparQlClient\Syntax\Pattern\PatternInterface;
 use EffectiveActivism\SparQlClient\Syntax\Pattern\Triple\Triple;
+use EffectiveActivism\SparQlClient\Syntax\Statement\ConditionalStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\ConstructStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\DeleteStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\InsertStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\ReplaceStatementInterface;
 use EffectiveActivism\SparQlClient\Syntax\Statement\SelectStatementInterface;
 use EffectiveActivism\SparQlClient\Syntax\Term\Iri\Iri;
 use EffectiveActivism\SparQlClient\Syntax\Term\Iri\PrefixedIri;
@@ -63,7 +69,7 @@ class SparQlHelper
                     // Do not include enumerated values.
                     new FilterNotExists([
                         new Triple($classTerm, new PrefixedIri('rdf', 'type'), $enumeratorClassVariable),
-                        new Triple($enumeratorClassVariable, new ZeroOrMorePath(new PrefixedIri('rdfs', 'subClassOf')), new PrefixedIri('schema', 'Enumeration'))
+                        new Triple($enumeratorClassVariable, new ZeroOrMorePath(new PrefixedIri('rdfs', 'subClassOf')), new PrefixedIri('schema', 'Enumeration')),
                     ]),
                     // Include comments where available.
                     new Optionally([
@@ -106,7 +112,7 @@ class SparQlHelper
                     // Do not include enumerated values.
                     new FilterNotExists([
                         new Triple($classVariable, new PrefixedIri('rdf', 'type'), $enumeratorClassVariable),
-                        new Triple($enumeratorClassVariable, new ZeroOrMorePath(new PrefixedIri('rdfs', 'subClassOf')), new PrefixedIri('schema', 'Enumeration'))
+                        new Triple($enumeratorClassVariable, new ZeroOrMorePath(new PrefixedIri('rdfs', 'subClassOf')), new PrefixedIri('schema', 'Enumeration')),
                     ]),
                     // Include comments where available.
                     new Optionally([
@@ -390,6 +396,103 @@ class SparQlHelper
             }
         } catch (SparQlException $exception) {
             throw new SchemaOrgApiException(sprintf('Failed to resolve scalar of type "%s"', $type), 0, $exception);
+        }
+    }
+
+    public function getNonConditionalVariables(ConditionalStatementInterface $statement): array
+    {
+        $variables = [];
+        if ($statement instanceof ConstructStatementInterface) {
+            foreach ($statement->getTriplesToConstruct() as $triple) {
+                foreach ($triple as $term) {
+                    if ($term instanceof Variable) {
+                        $variables[] = $term;
+                    }
+                }
+            }
+        }
+        elseif ($statement instanceof DeleteStatementInterface) {
+            foreach ($statement->getTriplesToDelete() as $triple) {
+                foreach ($triple as $term) {
+                    if ($term instanceof Variable) {
+                        $variables[] = $term;
+                    }
+                }
+            }
+        }
+        elseif ($statement instanceof InsertStatementInterface) {
+            foreach ($statement->getTriplesToInsert() as $triple) {
+                foreach ($triple as $term) {
+                    if ($term instanceof Variable) {
+                        $variables[] = $term;
+                    }
+                }
+            }
+        }
+        elseif ($statement instanceof ReplaceStatementInterface) {
+            foreach (array_merge($statement->getReplacements(), $statement->getOriginals()) as $triple) {
+                foreach ($triple as $term) {
+                    if ($term instanceof Variable) {
+                        $variables[] = $term;
+                    }
+                }
+            }
+        }
+        elseif ($statement instanceof SelectStatementInterface) {
+            $variables = $statement->getVariables();
+        }
+        return $variables;
+    }
+
+    /**
+     * @throws SchemaOrgApiException
+     */
+    public function removeOrphanedVariables(array $conditionals, array $extraVariables): array
+    {
+        try {
+            // Remove orphaned variables.
+            $conditionalsWithoutOrphanedVariables = [];
+            /** @var PatternInterface $condition */
+            foreach ($conditionals as $condition) {
+                $orphans = 0;
+                // Look for variables in conditionals. Every variable should appear at least twice.
+                // Also look for variables in the statement (extraVariables).
+                foreach ($condition->getTerms() as $term) {
+                    if ($term instanceof Variable) {
+                        $isOrphan = true;
+                        $firstOccurrence = false;
+                        foreach ($conditionals as $inspectedCondition) {
+                            foreach ($inspectedCondition->getTerms() as $inspectedTerm) {
+                                if ($inspectedTerm instanceof Variable) {
+                                    if ($inspectedTerm->getVariableName() === $term->getVariableName()) {
+                                        if ($firstOccurrence === true) {
+                                            $isOrphan = false;
+                                            break 2;
+                                        }
+                                        $firstOccurrence = true;
+                                    }
+                                }
+                            }
+                        }
+                        foreach ($extraVariables as $extraVariable) {
+                            if ($extraVariable->getVariableName() === $term->getVariableName()) {
+                                $isOrphan = false;
+                                break;
+                            }
+                        }
+                        if ($isOrphan) {
+                            $orphans++;
+                            break;
+                        }
+                    }
+                }
+                if ($orphans === 0) {
+                    $conditionalsWithoutOrphanedVariables[] = $condition;
+                }
+            }
+            return $conditionalsWithoutOrphanedVariables;
+        } catch (SparQlException $exception) {
+            throw new SchemaOrgApiException('Failed to remove orphaned variables', 0, $exception);
         }
     }
 }
