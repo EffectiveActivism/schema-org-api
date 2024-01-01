@@ -108,4 +108,63 @@ class MutationTest extends WebTestCase
         $response = $client->getInternalResponse();
         $this->assertEquals('{"data":{"Person":[{"memberOf":[{"name":[{"value":"Bar"},{"value":"Baz"}]}]}]}}', $response->getContent());
     }
+
+    public function testSetKnowsOfPersonOfOrganization()
+    {
+        $client = self::createClient();
+        $httpClient = new MockHttpClient(
+            [
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-classes.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-properties-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-comment-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-memberOf.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-types-of-memberOf.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Organization.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-properties-for-Organization.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-name.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-types-of-name.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-knows.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-types-of-knows.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-properties-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-properties-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-knows.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-types-of-knows.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-TextType.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-comment-for-TextType.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-name.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-types-of-name.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-knows.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-name.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-memberOf.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Organization.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-name.xml')),
+                new MockResponse(''),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-knows.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-Person.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/get-prefix-for-name.xml')),
+                new MockResponse(file_get_contents(__DIR__.'/../fixtures/testSetKnowsOfPersonOfOrganization/result.xml')),
+            ],
+        );
+        self::$kernel->getContainer()->set(HttpClientInterface::class, $httpClient);
+        $client->request(
+            'POST',
+            '/',
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+            ],
+            '{ "query": "mutation { Person ( memberOf: { Organization: { name: { TextType: { equalTo: \"Bar\" } } } } knows: { insert: { Person: { name: { TextType: { equalTo: \"Foo\" } } } } } ) { knows { ... on Person { name { ... on TextType { value } } } } } }" }'
+        );
+        $response = $client->getInternalResponse();
+        $this->assertEquals('{"data":{"Person":[{"knows":[{"name":[{"value":"Foo"}]}]}]}}', $response->getContent());
+    }
 }

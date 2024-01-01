@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sparql xmlns='http://www.w3.org/2005/sparql-results#'>
+    <head>
+        <variable name='class'/>
+        <variable name='comment'/>
+    </head>
+    <results>
+        <result>
+            <binding name='class'>
+                <uri>https://schema.org/Person</uri>
+            </binding>
+            <binding name='comment'>
+                <literal>A person (alive, dead, undead, or fictional).</literal>
+            </binding>
+        </result>
+    </results>
+</sparql>
