@@ -8,7 +8,14 @@ use EffectiveActivism\SchemaOrgApi\Helper\QueryHelper;
 use EffectiveActivism\SchemaOrgApi\Helper\SparQlHelper;
 use EffectiveActivism\SchemaOrgApi\Registry\TypeRegistry;
 use EffectiveActivism\SparQlClient\Client\SparQlClientInterface;
+use EffectiveActivism\SparQlClient\Syntax\Pattern\PatternInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\ConditionalStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\DeleteStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\InsertStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\ReplaceStatementInterface;
+use EffectiveActivism\SparQlClient\Syntax\Statement\SelectStatementInterface;
 use EffectiveActivism\SparQlClient\Syntax\Term\TermInterface;
+use EffectiveActivism\SparQlClient\Syntax\Term\Variable\Variable;
 use GraphQL\Deferred;
 use GraphQL\Type\Definition\ResolveInfo;
 use Psr\Log\LoggerInterface;
@@ -46,8 +53,10 @@ class FieldResolver
                         // inline mutations being carried out before their parent mutations.
                         foreach ($this->mutationHelper->getInlineMutationStatements() as $identifier => $statements) {
                             if (isset($condensedConditionals[$identifier])) {
+                                /** @var ConditionalStatementInterface $statement */
                                 foreach ($statements as $statement) {
-                                    $statement->where(array_merge($statement->getConditions(), $condensedConditionals[$identifier]));
+                                    $conditionals = array_merge($statement->getConditions(), $condensedConditionals[$identifier]);
+                                    $statement->where($this->sparQlHelper->removeOrphanedVariables($conditionals, $this->sparQlHelper->getNonConditionalVariables($statement)));
                                     $this->sparQlClient->execute($statement);
                                 }
                             }
@@ -56,7 +65,7 @@ class FieldResolver
                         $conditionals = array_merge($condensedConditionals[$uniqueIdentifier], $this->queryHelper->hydrateQuery($info->fieldNodes->getArrayCopy()));
                         $statement = $this->sparQlClient
                             ->select($this->queryHelper->getHydratedVariables())
-                            ->where($conditionals);
+                            ->where($this->sparQlHelper->removeOrphanedVariables($conditionals, $this->queryHelper->getHydratedVariables()));
                         self::$resultTree = $this->buildResultTree($this->sparQlClient->execute($statement));
                         break;
 
@@ -68,7 +77,7 @@ class FieldResolver
                         );
                         $statement = $this->sparQlClient
                             ->select($this->queryHelper->getHydratedVariables())
-                            ->where($conditionals);
+                            ->where($this->sparQlHelper->removeOrphanedVariables($conditionals, $this->queryHelper->getHydratedVariables()));
                         self::$resultTree = $this->buildResultTree($this->sparQlClient->execute($statement));
                         break;
                 }
